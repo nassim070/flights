@@ -3,19 +3,6 @@
 This project visualizes and analyzes airport data from airports.csv using Python and various libraries such as Pandas, Plotly, and Matplotlib.
 
 ## Features
-- World map visualization of airports
-
-- USA-only map with altitude-based color coding
-
-- Plot flights from JFK airport to multiple airports
-
-- Euclidean and geodesic distance calculations from JFK airport
-
-- Time zone distribution analysis
-
-- Airport altitude distribution analysis
-
-## Features
 1. **World Map of Airports:**
 
     - A scatter plot is generated using Plotly to visualize all airports in the dataset.
@@ -49,3 +36,31 @@ This project visualizes and analyzes airport data from airports.csv using Python
 6. **Airport Altitudes:**
     - A graphical representation of altitudes is created to illustrate the relative number of airports to different Altitudes.
 
+# Requirements
+- Python 3.x
+- Pandas
+- Plotly
+- Matplotlib
+- Numpy
+
+# Installation
+
+1. Clone the repository:
+
+```
+git clone https://github.com/yourusername/flight-analysis.git
+cd flight-analysis
+```
+
+2. Install dependencies:
+```
+pip install pandas plotly matplotlib numpy
+```
+
+3. Place the airports.csv file inside the data folder.
+
+# Usage
+Run the script:
+```
+python script.py
+```
