@@ -1,3 +1,20 @@
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import matplotlib.pyplot as plt
+import numpy as np
+
+df = pd.read_csv('data/airports.csv')
+
+def show_globalmap():
+    map = px.scatter_geo(data_frame=df, lat= 'lat', lon='lon', color='tzone')
+    map.show()
+
+def show_usamap():
+    usa_map = px.scatter_geo(data_frame=df, lat= 'lat', lon='lon', color='alt')
+    usa_map.update_layout(geo_scope = 'usa')
+    usa_map.show()
+
 def is_usa(faa):
     for x in faa:
         row = df[df["faa"] == x]
@@ -52,10 +69,6 @@ def plot_flight_to_airport(faa_list):
         fig.update_layout(geo_scope = 'usa')
 
     fig.show()
-
-faa = ["AUW", "AVX", "BEC", "FCA", "SOW", "TZR"]
-
-plot_flight_to_airport(faa)
 
 def euclidean_distance_plot():
     jfk = df[df["faa"] == "JFK"].iloc[0]
