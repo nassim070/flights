@@ -182,9 +182,28 @@ def top_manufacturers_for_destination(destination):
 
 
 
-print(top_manufacturers_for_destination("SMF"))
+#print(top_manufacturers_for_destination("SMF"))
 
+def analyze_distance_vs_delay():
+    query = """
+        SELECT distance, arr_delay
+        FROM flights
+        WHERE distance IS NOT NULL AND arr_delay IS NOT NULL;
+    """
+    df = pd.read_sql_query(query, conn)
 
+    plt.figure(figsize=(10, 6))
+    plt.scatter(df['arr_delay'], df['distance'], alpha=0.5, color='b')
+    plt.title('Relationship between Arrival Delay and Distance')
+    plt.xlabel('Arrival Delay (minutes)')
+    plt.ylabel('Distance (miles)')
+    plt.grid(True)
+    plt.show()
+
+    correlation = df['arr_delay'].corr(df['distance'])
+    print(f"Correlation between arrival delay and distance: {correlation:.2f}")
+
+#analyze_distance_vs_delay()
 
 
 
