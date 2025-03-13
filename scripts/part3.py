@@ -141,7 +141,24 @@ def average_departure_delay_per_airline():
     plt.subplots_adjust(bottom=0.3)
     plt.show()
 
-average_departure_delay_per_airline()
+def delayed_flights_to_destination(start_month, end_month, destination):
+    query = """
+        SELECT COUNT(*) 
+        FROM flights
+        WHERE dest = ? 
+        AND month BETWEEN ? AND ?
+        AND dep_delay > 0;
+    """
+
+    cursor = conn.cursor()
+    cursor.execute(query, (destination, start_month, end_month))
+
+    result = cursor.fetchone()
+    return result[0] if result else 0
+
+#delayed_flights_count = delayed_flights_to_destination(1, 4, 'HNL')
+#print(f"Number of delayed flights: {delayed_flights_count}")
+
 
 
 
