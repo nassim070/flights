@@ -118,6 +118,30 @@ def aircraft_usage_by_route(origin, destination):
 
     return tailnum_counts
 
+def average_departure_delay_per_airline():
+    query = """
+        SELECT a.name, AVG(f.dep_delay) AS avg_delay
+        FROM flights f
+        JOIN airlines a ON f.carrier = a.carrier
+        GROUP BY a.name
+        ORDER BY avg_delay DESC;
+    """
+    
+    cursor.execute(query)
+    results = cursor.fetchall()
+
+    airlines, avg_delays = zip(*results)
+
+    plt.figure(figsize=(12, 10))
+    plt.bar(airlines, avg_delays, color="skyblue")
+    plt.ylabel("Average Departure Delay (minutes)")
+    plt.xlabel("Airline")
+    plt.title("Average Departure Delay per Airline")
+    plt.xticks(rotation=90)  
+    plt.subplots_adjust(bottom=0.3)
+    plt.show()
+
+average_departure_delay_per_airline()
 
 
 
