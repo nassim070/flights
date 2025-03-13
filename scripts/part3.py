@@ -21,6 +21,15 @@ def compare_distances():
 
     p1.geodesic_distance_plot()
 
+def depart_from_NYC (origin):
+     df = pd.read_sql_query(f"SELECT * FROM flights WHERE origin = '{origin}';" , conn)
+
+     print(df)
+
+depart_from_NYC ("JFK")
+depart_from_NYC ("LGA")
+depart_from_NYC ("EWR")
+
 
 
 
