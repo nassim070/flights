@@ -64,3 +64,5 @@ Run the script:
 ```
 python script.py
 ```
+
+Test pull request 2
