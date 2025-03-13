@@ -98,26 +98,27 @@ def flight_statistics_on_date(month, day, origin):
         "most_common_count": most_common_count
     }
 
-def plane_types_between_airports(origin, destination):
-    query = f'''
-        SELECT p.type, COUNT(*) as count
-        FROM flights f
-        JOIN planes p ON f.tailnum = p.tailnum
-        WHERE f.origin = '{origin}' AND f.dest = '{destination}'
-        GROUP BY p.type;
-    '''
-    
-    df_result = pd.read_sql_query(query, conn)
-    
-    result_dict = dict(zip(df_result['type'], df_result['count']))
-    
-    print(f"Plane types used from {origin} to {destination}:")
-    for plane_type, count in result_dict.items():
-        print(f"- {plane_type}: {count} times")
-    
-    return result_dict
+def aircraft_usage_by_route(origin, destination):
+    query = """
+        SELECT tailnum, COUNT(*) as count
+        FROM flights
+        WHERE origin = ? AND dest = ?
+        GROUP BY tailnum
+        ORDER BY count DESC;
+    """
 
-plane_types_between_airports("JFK", "HNL")
+    cursor.execute(query, (origin, destination))
+    results = cursor.fetchall()
+
+    tailnum_counts = {row[0]: row[1] for row in results}
+
+    print(f"Aircraft usage from {origin} to {destination}:")
+    for tailnum, count in tailnum_counts.items():
+        print(f"- {tailnum}: {count} times")
+
+    return tailnum_counts
+
+
 
 
 
