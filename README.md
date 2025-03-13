@@ -65,9 +65,6 @@ Run the script:
 python script.py
 ```
 
-<<<<<<< HEAD
-test pullrequest 3
-=======
 
 
 
@@ -77,4 +74,4 @@ test pullrequest 3
 Test Nassim ff
 
 test noureddine 3
->>>>>>> 11549c6205fce031d7d2bd4c85b29b45cdb0d48f
+test naoufal
