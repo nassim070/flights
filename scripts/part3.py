@@ -160,6 +160,29 @@ def delayed_flights_to_destination(start_month, end_month, destination):
 #print(f"Number of delayed flights: {delayed_flights_count}")
 
 
+def top_manufacturers_for_destination(destination):
+    flights_query = """
+    SELECT * FROM flights WHERE dest = ?
+    """
+    flights_df = pd.read_sql_query(flights_query, conn, params=(destination,))
+    
+    # Query the planes table
+    planes_query = """
+    SELECT * FROM planes
+    """
+    planes_df = pd.read_sql_query(planes_query, conn)
+    
+    # Merge the flights and planes dataframes on 'tailnum'
+    merged_df = pd.merge(flights_df, planes_df, on='tailnum', how='inner')
+    
+    # Count the top 5 manufacturers based on the number of flights to the destination
+    manufacturer_counts = merged_df['manufacturer'].value_counts().head(5)
+
+    return manufacturer_counts
+
+
+
+print(top_manufacturers_for_destination("SMF"))
 
 
 
