@@ -314,4 +314,67 @@ def compute_inner_product(year, month, day, flight, hour, minute):
 
 #print(compute_inner_product(2023, 1, 1, 628, 20, 38))
 
+def visualize_inner_product_vs_air_time():
+    query = """
+    SELECT
+        flights.flight,
+        flights.air_time,
+        airports_origin.lat AS origin_lat,
+        airports_origin.lon AS origin_lon,
+        airports_dest.lat AS dest_lat,
+        airports_dest.lon AS dest_lon,
+        weather.wind_speed,
+        weather.wind_dir
+    FROM flights
+    JOIN airports AS airports_origin ON flights.origin = airports_origin.faa
+    JOIN airports AS airports_dest ON flights.dest = airports_dest.faa
+    JOIN weather ON flights.origin = weather.origin
+        AND flights.year = weather.year
+        AND flights.month = weather.month
+        AND flights.day = weather.day
+        AND flights.hour = weather.hour
+    WHERE flights.air_time IS NOT NULL;
+    """
+
+    df = pd.read_sql_query(query, conn)
+
+    inner_products = []
+    air_times = []
+
+    for _, row in df.iterrows():
+       
+        origin_lat, origin_lon = np.radians(row["origin_lat"]), np.radians(row["origin_lon"])
+        dest_lat, dest_lon = np.radians(row["dest_lat"]), np.radians(row["dest_lon"])
+
+        delta_lat = dest_lat - origin_lat
+        delta_lon = dest_lon - origin_lon
+
+        norm = np.sqrt(delta_lat*2 + delta_lon*2)
+        flight_direction = np.array([delta_lat / norm, delta_lon / norm]) if norm != 0 else np.array([0, 0])
+
+        wind_speed = row["wind_speed"]
+        wind_dir = np.radians(row["wind_dir"])
+        wind_vector = np.array([wind_speed * np.cos(wind_dir), wind_speed * np.sin(wind_dir)])
+
+        inner_product = np.dot(flight_direction, wind_vector)
+
+        inner_products.append(inner_product)
+        air_times.append(row["air_time"])
+
+    plot_df = pd.DataFrame({"Inner Product": inner_products, "Air Time": air_times})
+    correlation = plot_df["Inner Product"].corr(plot_df["Air Time"])
+    print(f"Correlation between wind effect (inner product) and air time: {correlation:.2f}")
+
+    plt.figure(figsize=(10, 6))
+    scatter = plt.scatter(
+        plot_df["Inner Product"], plot_df["Air Time"],
+        c=np.sign(plot_df["Inner Product"]), cmap="bwr", alpha=0.7
+    )
+    plt.colorbar(scatter, label="Wind Effect (-1: Headwind, 1: Tailwind)")
+    plt.axvline(0, color="black", linestyle="--", alpha=0.7)  
+    plt.xlabel("Inner Product (Wind Effect)")
+    plt.ylabel("Air Time (minutes)")
+    plt.title(f"Relationship Between Wind Effect and Air Time (Correlation: {correlation:.2f})")
+    plt.grid(True)
+    plt.show()
 
