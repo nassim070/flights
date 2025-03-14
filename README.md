@@ -42,13 +42,14 @@ This project visualizes and analyzes airport data from airports.csv using Python
 - Plotly
 - Matplotlib
 - Numpy
+- Sqlite3
 
 # Installation
 
 1. Clone the repository:
 
 ```
-git clone https://github.com/yourusername/flight-analysis.git
+git clone https://github.com/nassim070/flights.git
 cd flight-analysis
 ```
 
@@ -64,4 +65,3 @@ Run the script:
 ```
 python script.py
 ```
-jhgkhjhh
