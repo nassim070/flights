@@ -262,7 +262,56 @@ def get_flight_directions():
 #print(get_flight_directions())
 
 
+def compute_inner_product(year, month, day, flight, hour, minute):
+    flight_query = """
+    SELECT
+    origin_airports.lat AS origin_lat,
+    origin_airports.lon AS origin_lon,
+    dest_airports.lat AS dest_lat,
+    dest_airports.lon AS dest_lon,
+    weather.wind_speed,
+    weather.wind_dir
+    FROM
+        flights
+    JOIN
+        airports AS origin_airports ON flights.origin = origin_airports.faa
+    JOIN
+        airports AS dest_airports ON flights.dest = dest_airports.faa
+    JOIN
+        weather ON flights.origin = weather.origin
+           AND flights.year = weather.year
+           AND flights.month = weather.month
+           AND flights.day = weather.day
+           AND flights.hour = weather.hour
+    WHERE
+        flights.year = ?
+        AND flights.month = ?
+        AND flights.day = ?
+        AND flights.flight = ?
+        AND flights.hour = ?
+        AND flights.minute = ?;
+    """
+    
+    flight_data = pd.read_sql_query(flight_query, conn, params=(year, month, day, flight, hour, minute))
+    
+    origin_lat, origin_lon = np.radians(flight_data["origin_lat"].values[0]), np.radians(flight_data["origin_lon"].values[0])
+    dest_lat, dest_lon = np.radians(flight_data["dest_lat"].values[0]), np.radians(flight_data["dest_lon"].values[0])
+    
+    delta_lat = dest_lat - origin_lat
+    delta_lon = dest_lon - origin_lon
 
+    norm = np.sqrt(delta_lat**2 + delta_lon**2)
+    flight_direction = np.array([delta_lat / norm, delta_lon / norm]) if norm != 0 else np.array([0, 0])
+    
+    wind_speed = flight_data["wind_speed"].values[0]
+    wind_dir = np.radians(flight_data["wind_dir"].values[0])
+    
+    wind_vector = np.array([wind_speed * np.cos(wind_dir), wind_speed * np.sin(wind_dir)])
+    
+    inner_product = np.dot(flight_direction, wind_vector)
+    
+    return inner_product
 
+#print(compute_inner_product(2023, 1, 1, 628, 20, 38))
 
 
