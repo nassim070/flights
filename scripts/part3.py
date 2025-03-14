@@ -159,28 +159,22 @@ def delayed_flights_to_destination(start_month, end_month, destination):
 #delayed_flights_count = delayed_flights_to_destination(1, 4, 'HNL')
 #print(f"Number of delayed flights: {delayed_flights_count}")
 
-
 def top_manufacturers_for_destination(destination):
     flights_query = """
     SELECT * FROM flights WHERE dest = ?
     """
     flights_df = pd.read_sql_query(flights_query, conn, params=(destination,))
     
-    # Query the planes table
     planes_query = """
     SELECT * FROM planes
     """
     planes_df = pd.read_sql_query(planes_query, conn)
     
-    # Merge the flights and planes dataframes on 'tailnum'
     merged_df = pd.merge(flights_df, planes_df, on='tailnum', how='inner')
     
-    # Count the top 5 manufacturers based on the number of flights to the destination
     manufacturer_counts = merged_df['manufacturer'].value_counts().head(5)
 
     return manufacturer_counts
-
-
 
 #print(top_manufacturers_for_destination("SMF"))
 
@@ -204,6 +198,33 @@ def analyze_distance_vs_delay():
     print(f"Correlation between arrival delay and distance: {correlation:.2f}")
 
 #analyze_distance_vs_delay()
+
+def update_plane_speeds():
+    query = """
+        SELECT f.tailnum, f.distance, f.air_time, p.model
+        FROM flights f
+        JOIN planes p ON f.tailnum = p.tailnum
+        WHERE f.air_time > 0 AND f.distance IS NOT NULL;
+    """
+    df = pd.read_sql_query(query, conn)
+
+    df["speed"] = df["distance"] / df["air_time"]
+
+    avg_speeds = df.groupby("model")["speed"].mean().reset_index()
+
+    cursor = conn.cursor()
+    for _, row in avg_speeds.iterrows():
+        update_query = """
+            UPDATE planes
+            SET speed = ?
+            WHERE model = ?;
+        """
+        cursor.execute(update_query, (row["speed"], row["model"]))
+
+    conn.commit()
+    print("Plane speeds updated successfully.")
+
+update_plane_speeds()
 
 
 
