@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import sqlite3
 import pandas as pd
+import numpy as np
 
 conn = sqlite3.connect("data/flights_database.db")
 cursor = conn.cursor()
@@ -224,8 +225,41 @@ def update_plane_speeds():
     conn.commit()
     print("Plane speeds updated successfully.")
 
-update_plane_speeds()
+#update_plane_speeds()
 
+def calculate_bearing(lat1, lon1, lat2, lon2):
+    """Bereken de richting (bearing) van de vlucht tussen twee locaties."""
+    lat1, lon1, lat2, lon2 = map(np.radians, [lat1, lon1, lat2, lon2])
+    delta_lon = lon2 - lon1
+
+    x = np.sin(delta_lon) * np.cos(lat2)
+    y = np.cos(lat1) * np.sin(lat2) - np.sin(lat1) * np.cos(lat2) * np.cos(delta_lon)
+
+    initial_bearing = np.arctan2(x, y)
+    compass_bearing = (np.degrees(initial_bearing) + 360) % 360  
+
+    return round(compass_bearing, 2)
+
+def get_flight_directions():
+
+    query = """
+        SELECT f.origin, f.dest, a1.lat AS origin_lat, a1.lon AS origin_lon, 
+               a2.lat AS dest_lat, a2.lon AS dest_lon
+        FROM flights f
+        JOIN airports a1 ON f.origin = a1.faa
+        JOIN airports a2 ON f.dest = a2.faa
+        WHERE f.origin IN ('JFK', 'LGA', 'EWR');
+    """
+    
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+
+    df["bearing"] = df.apply(lambda row: calculate_bearing(row["origin_lat"], row["origin_lon"], 
+                                                            row["dest_lat"], row["dest_lon"]), axis=1)
+    
+    return df[["origin", "dest", "bearing"]]
+
+#print(get_flight_directions())
 
 
 
