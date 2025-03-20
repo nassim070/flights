@@ -17,7 +17,7 @@ def clean_flights_data():
             df[column] = df[column].fillna(most_common_value)
         elif df[column].dtype in ['float64', 'int64']:  
             median_value = df[column].median()
-            df[column] = df[column].fillna(median_value)
+            df[column] = df[column].fillna(median_value).astype(int)
     df = df.dropna(subset=["tailnum"])
 
     duplicates = df[df.duplicated(keep=False)]
@@ -27,8 +27,20 @@ def clean_flights_data():
 
     print("\nCleaning completed. Remaining rows:", len(df))
 
-    conn.close()
     return df
 
-#cleaned_df = clean_flights_data()
+#print(clean_flights_data())
 
+
+def convert_to_datetime(df):
+    time_columns = ['sched_dep_time', 'sched_arr_time', 'dep_time', 'arr_time']
+    
+    for col in time_columns:
+        df[col] = df[col].astype(str).str.zfill(4)
+        df[col] = pd.to_datetime(df[col], format='%H%M', errors='coerce').dt.time
+
+    return df
+
+#df_cleaned = clean_flights_data()
+#df_convert = convert_to_datetime(df_cleaned)
+#print(df_convert)
