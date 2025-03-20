@@ -44,3 +44,38 @@ def convert_to_datetime(df):
 #df_cleaned = clean_flights_data()
 #df_convert = convert_to_datetime(df_cleaned)
 #print(df_convert)
+
+def check_and_fix_flights():
+    query = "SELECT flight, sched_dep_time, dep_time, sched_arr_time, arr_time, air_time, distance FROM flights;"
+    df = pd.read_sql_query(query, conn)
+
+    inconsistencies = []
+
+    incorrect_dep_times = df[df["dep_time"] < df["sched_dep_time"]]
+    if not incorrect_dep_times.empty:
+        inconsistencies.append("Some flights have departure times earlier than scheduled.")
+        df.loc[df["dep_time"] < df["sched_dep_time"], "dep_time"] = df["sched_dep_time"]
+
+    incorrect_arrival_times = df[df["arr_time"] < df["dep_time"]]
+    if not incorrect_arrival_times.empty:
+        inconsistencies.append("Some flights have arrival times earlier than departure times.")
+        df.loc[df["arr_time"] < df["dep_time"], "arr_time"] = df["dep_time"] + df["air_time"]
+
+    speed_threshold = 8
+    incorrect_air_times = df[df["air_time"] < df["distance"] / speed_threshold]
+    if not incorrect_air_times.empty:
+        inconsistencies.append("Some flights have unrealistically short air times.")
+        df.loc[df["air_time"] < df["distance"] / speed_threshold, "air_time"] = df["distance"] / speed_threshold
+
+    df["dep_time"] = df["dep_time"].fillna(df["sched_dep_time"])
+    df["arr_time"] = df["arr_time"].fillna(df["sched_arr_time"])
+
+    if inconsistencies:
+        print("\n".join(inconsistencies))
+        print("Issues have been corrected.")
+    else:
+        print("All flight data is consistent.")
+
+    return df
+
+#cleaned_flights = check_and_fix_flights()
