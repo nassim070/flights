@@ -1,6 +1,7 @@
 import sqlite3
 import pandas as pd
 from datetime import datetime, timedelta
+import pytz
 
 conn = sqlite3.connect("data/flights_database.db")
 
@@ -96,6 +97,34 @@ def check_flight_data_consistency(df):
     
     return df
 
+#dff = check_flight_data_consistency(clean_and_process_flights_data())
+#print(dff)
 
-dff = check_flight_data_consistency(clean_and_process_flights_data())
+def convert_to_local_time(df):
+        airports_query = "SELECT faa, tz FROM airports;"
+        airports_df = pd.read_sql_query(airports_query, conn)
+
+        airport_timezones = dict(zip(airports_df['faa'], airports_df['tz']))
+        local_arrival_times = []
+
+        for index, row in df.iterrows():
+            dest = str(row['dest']) if pd.notna(row['dest']) else "UNKNOWN"
+            dest_tz = airport_timezones.get(dest, -5)  
+
+            time_diff = dest_tz - (-5)
+
+            if pd.isna(row['arr_time']):
+                local_arrival_times.append(None)
+                continue
+
+            arr_time = datetime.combine(datetime.today(), row['arr_time'])
+
+            local_arr_time = arr_time + timedelta(hours=time_diff)
+
+            local_arrival_times.append(local_arr_time.time())
+
+        df['local_arr_time'] = local_arrival_times
+        return df
+
+dff = convert_to_local_time(clean_and_process_flights_data())
 print(dff)
