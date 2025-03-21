@@ -1,13 +1,13 @@
 import sqlite3
 import pandas as pd
+from datetime import datetime, timedelta
 
 conn = sqlite3.connect("data/flights_database.db")
 
-def clean_flights_data():
-
+def clean_and_process_flights_data():
     query = "SELECT * FROM flights;"
     df = pd.read_sql_query(query, conn)
-
+    
     missing_values = df.isnull().sum()
     print("Missing values per column:\n", missing_values)
 
@@ -18,21 +18,15 @@ def clean_flights_data():
         elif df[column].dtype in ['float64', 'int64']:  
             median_value = df[column].median()
             df[column] = df[column].fillna(median_value).astype(int)
+
     df = df.dropna(subset=["tailnum"])
 
-    duplicates = df[df.duplicated(keep=False)]
+    duplicates = df[df.duplicated()]
     print(f"\nNumber of exact duplicates found: {len(duplicates)}")
-
     df = df.drop_duplicates()
 
     print("\nCleaning completed. Remaining rows:", len(df))
 
-    return df
-
-#print(clean_flights_data())
-
-
-def convert_to_datetime(df):
     time_columns = ['sched_dep_time', 'sched_arr_time', 'dep_time', 'arr_time']
     
     for col in time_columns:
@@ -41,41 +35,67 @@ def convert_to_datetime(df):
 
     return df
 
-#df_cleaned = clean_flights_data()
-#df_convert = convert_to_datetime(df_cleaned)
-#print(df_convert)
 
-def check_and_fix_flights():
-    query = "SELECT flight, sched_dep_time, dep_time, sched_arr_time, arr_time, air_time, distance FROM flights;"
-    df = pd.read_sql_query(query, conn)
+def check_flight_data_consistency(df):
+    inconsistent_rows = []
+    
+    def clean_time(value):
+        if pd.isnull(value):
+            return None
+        value = str(value)
+        if ':' in value:
+            return datetime.strptime(value, "%H:%M:%S").time()
+        elif len(value) == 4 and value.isdigit():
+            return datetime.strptime(value, "%H%M").time()
+        return None
+    
+    for index, row in df.iterrows():
+        sched_dep = clean_time(row['sched_dep_time'])
+        dep = clean_time(row['dep_time']) if pd.notnull(row['dep_time']) else sched_dep
+        sched_arr = clean_time(row['sched_arr_time'])
+        arr = clean_time(row['arr_time']) if pd.notnull(row['arr_time']) else sched_arr
+        
+        if not all([sched_dep, dep, sched_arr, arr]):
+            continue
+        
+        dep_datetime = datetime.combine(datetime.today(), dep)
+        arr_datetime = datetime.combine(datetime.today(), arr)
+        
+        calculated_air_time = (arr_datetime - dep_datetime).total_seconds() / 60
+        if calculated_air_time < 0:
+            calculated_air_time += 1440
+        
+        if row['air_time'] != calculated_air_time:
+            inconsistent_rows.append(index)
+            df.at[index, 'air_time'] = calculated_air_time
 
-    inconsistencies = []
+        inconsistent_delay = []
+        calculated_dep_delay = (dep_datetime - datetime.combine(datetime.today(), sched_dep)).total_seconds() / 60
+        if calculated_dep_delay < 0:
+            calculated_dep_delay += 1440
+        
+        if row['dep_delay'] != calculated_dep_delay:
+            inconsistent_delay.append(index)
+            df.at[index, 'dep_delay'] = calculated_dep_delay
 
-    incorrect_dep_times = df[df["dep_time"] < df["sched_dep_time"]]
-    if not incorrect_dep_times.empty:
-        inconsistencies.append("Some flights have departure times earlier than scheduled.")
-        df.loc[df["dep_time"] < df["sched_dep_time"], "dep_time"] = df["sched_dep_time"]
-
-    incorrect_arrival_times = df[df["arr_time"] < df["dep_time"]]
-    if not incorrect_arrival_times.empty:
-        inconsistencies.append("Some flights have arrival times earlier than departure times.")
-        df.loc[df["arr_time"] < df["dep_time"], "arr_time"] = df["dep_time"] + df["air_time"]
-
-    speed_threshold = 8
-    incorrect_air_times = df[df["air_time"] < df["distance"] / speed_threshold]
-    if not incorrect_air_times.empty:
-        inconsistencies.append("Some flights have unrealistically short air times.")
-        df.loc[df["air_time"] < df["distance"] / speed_threshold, "air_time"] = df["distance"] / speed_threshold
-
-    df["dep_time"] = df["dep_time"].fillna(df["sched_dep_time"])
-    df["arr_time"] = df["arr_time"].fillna(df["sched_arr_time"])
-
-    if inconsistencies:
-        print("\n".join(inconsistencies))
-        print("Issues have been corrected.")
-    else:
+        inconsistent_arrival = []
+        calculated_arr_delay = (arr_datetime - datetime.combine(datetime.today(), sched_arr)).total_seconds() / 60
+        if calculated_arr_delay < 0:
+            calculated_arr_delay += 1440
+        
+        if row['arr_delay'] != calculated_arr_delay:
+            inconsistent_arrival.append(index)
+            df.at[index, 'arr_delay'] = calculated_arr_delay
+    
+    if not inconsistent_rows:
         print("All flight data is consistent.")
-
+    else:
+        print(f"Total inconsistent rows: {len(inconsistent_rows)}")
+        print(f"Total inconsistent delays: {len(inconsistent_delay)}")
+        print(f"Total inconsistent arrivals: {len(inconsistent_arrival)}")
+    
     return df
 
-#cleaned_flights = check_and_fix_flights()
+
+dff = check_flight_data_consistency(clean_and_process_flights_data())
+print(dff)
