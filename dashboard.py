@@ -6,7 +6,7 @@ import numpy as np
 import sqlite3
 from scripts import part1 as p1  
 from scripts import part4 as p4
-from datetime import datetime
+from scripts import statistics as stats
 
 st.markdown(
     """
@@ -41,6 +41,9 @@ st.markdown(
         background-color: white;
         color: #FFA500;
     }
+
+    .st-emotion-cache-mtjnbi {
+        max-width: 80%;}
     </style>
     """,
     unsafe_allow_html=True,
@@ -68,10 +71,59 @@ if st.sidebar.button("Go to Flight Overview", key="overview_button"):
     page = "overview"
 
 if page == "overview":
-    st.markdown("<h1 style='text-align: center;'>Welcome</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='text-align: center;'>Statistics of flights from {selected_departure} to {selected_destination}</h1>", unsafe_allow_html=True)
 
     fig_dep_to_arr = p1.plot_flight_to_airport(selected_departure, faa_list)
     st.plotly_chart(fig_dep_to_arr, use_container_width=True)
+
+    col5, col6 = st.columns(2)
+
+    with col5:
+        st.markdown(
+            f'<div class="metric-box orange-box">'
+            f'<h3>Total Flights</h3>'
+            f'<h1>{stats.get_number_of_flights(df_flights, selected_departure, selected_destination, conn)}</h1>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    with col6:
+        st.markdown(
+            f'<div class="metric-box orange-box">'
+            f'<h3>Distance</h3>'
+            f'<h1>{stats.get_distance(df_flights, selected_departure, selected_destination, conn)}</h1>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    col7, col8, col9 = st.columns(3)
+
+    with col7:
+        st.markdown(
+            f'<div class="metric-box black-box">'
+            f'<h3>Average Delay</h3>'
+            f'<h2>{stats.get_average_dep_delay(df_flights, selected_departure, selected_destination, conn)}</h2>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+    
+    with col8:
+        st.markdown(
+            f'<div class="metric-box black-box">'
+            f'<h3>Percentage of Delay</h3>'
+            f'<h1>{stats.get_percentage_delayed_flights(df_flights, selected_departure, selected_destination, conn)}</h1>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+    
+    with col9:
+        st.markdown(
+            f'<div class="metric-box black-box">'
+            f'<h3>Percentage of Flights on Time</h3>'
+            f'<h1>{stats.get_percentage_on_time_arrivals(df_flights, selected_departure, selected_destination, conn)}</h1>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
 else:
     # Titel
@@ -115,11 +167,11 @@ else:
         )
 
     with col4:
-        early_flights = df_flights[df_flights['arr_delay'] < 0]
+        early_flights = df_flights[df_flights['arr_delay'] <= 0]
         percentage_early = (len(early_flights) / total_flights) * 100
         st.markdown(
             f'<div class="metric-box black-box">'
-            f'<h3>Percentage Early Arrivals</h3>'
+            f'<h3>Percentage Flights on Time</h3>'
             f'<h1>{percentage_early:.2f}%</h1>'
             f'</div>',
             unsafe_allow_html=True,
@@ -139,5 +191,3 @@ else:
     st.plotly_chart(fig_globalmap, use_container_width=True)
 
 conn.close()
-
-
