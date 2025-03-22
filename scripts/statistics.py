@@ -1,6 +1,6 @@
 import sqlite3
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.express as px
 
 conn = sqlite3.connect("data/flights_database.db")
 df = pd.read_sql_query("SELECT * FROM flights;", conn)
@@ -36,27 +36,31 @@ def get_distance(df, dep, arr):
     return df[(df["origin"] == dep) & (df["dest"] == arr)]["distance"].mean()
 
 
-#plot the number of delays per day (monday till sunday) from departure airport to arrival airport
 def plot_delays_per_day(df, dep, arr):
-    df = df[(df["origin"] == dep) & (df["dest"] == arr)]
-    df['date'] = pd.to_datetime(df[['year', 'month', 'day']])
+    df_filtered = df[(df["origin"] == dep) & (df["dest"] == arr)].copy()
 
-    df['day_of_week'] = df['date'].dt.dayofweek
-
-    delayed_flights = df[df['dep_delay'] > 0]
-
-    delays_per_day = delayed_flights.groupby('day_of_week').size()
-
-    day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    delays_per_day.index = [day_names[i] for i in delays_per_day.index]
-
-    plt.figure(figsize=(10, 6))
-    delays_per_day.plot(kind='bar', color='#FFA500')
-    plt.title('Number of Delays per Day of the Week')
-    plt.xlabel('Day of the Week')
-    plt.ylabel('Number of Delays')
-    plt.xticks(rotation=45)
-    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    df_filtered.loc[:, 'date'] = pd.to_datetime(df_filtered[['year', 'month', 'day']])
     
-    return plt
+    df_filtered.loc[:, 'day_of_week'] = df_filtered['date'].dt.dayofweek
+    
+    delayed_flights = df_filtered[df_filtered['dep_delay'] > 0]
+    
+    delays_per_day = delayed_flights.groupby('day_of_week').size().reset_index(name='delays')
+    
+    day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    delays_per_day['day_of_week'] = delays_per_day['day_of_week'].map(lambda x: day_names[x])
+    
+    fig = px.bar(delays_per_day, x='day_of_week', y='delays', 
+                 title=f'Number of Delays per Day of the Week ({dep} to {arr})',
+                 labels={'day_of_week': 'Day of the Week', 'delays': 'Number of Delays'},
+                 text='delays')
+    
+    fig.update_traces(marker_color='#FFA500', textposition='outside')
+    fig.update_layout(xaxis_tickangle=-45, 
+                      yaxis_gridcolor='lightgray', 
+                      yaxis_gridwidth=0.5, 
+                      yaxis_showgrid=True,
+                      plot_bgcolor='white')
+    
+    return fig
 

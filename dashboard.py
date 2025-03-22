@@ -128,6 +128,10 @@ if page == "overview":
                 f'</div>',
                 unsafe_allow_html=True,
             )
+
+        fig_delays_per_day = stats.plot_delays_per_day(df_flights, selected_departure, selected_destination)
+        st.plotly_chart(fig_delays_per_day, use_container_width=True)
+
     else:
         st.markdown(f"<h1 style='text-align: center;'>Error: no flight from {selected_departure} to {selected_destination}</h1>", unsafe_allow_html=True)
 
