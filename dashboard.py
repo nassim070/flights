@@ -86,7 +86,7 @@ if page == "overview":
             st.markdown(
                 f'<div class="metric-box orange-box">'
                 f'<h3>Total Flights</h3>'
-                f'<h1>{stats.get_number_of_flights(df_flights, selected_departure, selected_destination, conn)}</h1>'
+                f'<h1>{stats.get_number_of_flights(df_flights, selected_departure, selected_destination)}</h1>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -95,7 +95,7 @@ if page == "overview":
             st.markdown(
                 f'<div class="metric-box orange-box">'
                 f'<h3>Distance</h3>'
-                f'<h1>{stats.get_distance(df_flights, selected_departure, selected_destination, conn)}</h1>'
+                f'<h1>{stats.get_distance(df_flights, selected_departure, selected_destination)}</h1>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -106,7 +106,7 @@ if page == "overview":
             st.markdown(
                 f'<div class="metric-box black-box">'
                 f'<h3>Average Delay</h3>'
-                f'<h2>{stats.get_average_dep_delay(df_flights, selected_departure, selected_destination, conn)}</h2>'
+                f'<h2>{stats.get_average_dep_delay(df_flights, selected_departure, selected_destination)}</h2>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -115,7 +115,7 @@ if page == "overview":
             st.markdown(
                 f'<div class="metric-box black-box">'
                 f'<h3>Percentage of Delay</h3>'
-                f'<h1>{stats.get_percentage_delayed_flights(df_flights, selected_departure, selected_destination, conn)}</h1>'
+                f'<h1>{stats.get_percentage_delayed_flights(df_flights, selected_departure, selected_destination)}</h1>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -124,7 +124,7 @@ if page == "overview":
             st.markdown(
                 f'<div class="metric-box black-box">'
                 f'<h3>Percentage of Flights on Time</h3>'
-                f'<h1>{stats.get_percentage_on_time_arrivals(df_flights, selected_departure, selected_destination, conn)}</h1>'
+                f'<h1>{stats.get_percentage_on_time_arrivals(df_flights, selected_departure, selected_destination)}</h1>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
