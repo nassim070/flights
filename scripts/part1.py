@@ -26,12 +26,14 @@ def is_usa(faa):
     
     return True
 
-def plot_flight_to_airport(faa_list):
-    nyc_lat, nyc_lon = df[df["faa"] == "JFK"]["lat"].values[0], df[df["faa"] == "JFK"]["lon"].values[0] #JFK
+def plot_flight_to_airport(departure_faa, faa_list):
+    departure_airport = df[df["faa"] == departure_faa]
+
+    dep_lat, dep_lon = departure_airport["lat"].values[0], departure_airport["lon"].values[0]
 
     fig = px.scatter_geo(
-        df[df["faa"].isin(["JFK", faa_list])], lat="lat", lon="lon", hover_name="name",
-        title=f"Flight from New York to Multiple Airports"
+        df[df["faa"].isin([departure_faa] + faa_list)], lat="lat", lon="lon", hover_name="name",
+        title=f"Flights from {departure_faa} to {faa_list[0]}"
     )
 
     for faa in faa_list:
@@ -43,8 +45,8 @@ def plot_flight_to_airport(faa_list):
             airport_name = airport["name"].values[0]
 
             fig.add_trace(go.Scattergeo(
-                lat=[nyc_lat, airport_lat],
-                lon=[nyc_lon, airport_lon],
+                lat=[dep_lat, airport_lat],
+                lon=[dep_lon, airport_lon],
                 mode="lines",
                 line=dict(width=2, color="red")
             ))
@@ -58,17 +60,18 @@ def plot_flight_to_airport(faa_list):
             ))
 
     fig.add_trace(go.Scattergeo(
-                lat=[nyc_lat],
-                lon=[nyc_lon],
-                mode="markers",
-                marker=dict(size=8, color="green"),
-                text=[airport_name]
-            ))
+        lat=[dep_lat],
+        lon=[dep_lon],
+        mode="markers",
+        marker=dict(size=8, color="green"),
+        text=[departure_faa]
+    ))
 
-    if (is_usa(faa_list)):
-        fig.update_layout(geo_scope = 'usa')
+    if is_usa(faa_list):
+        fig.update_layout(geo_scope='usa')
 
-    fig.show()
+    return fig
+    
 
 def euclidean_distance_plot():
     jfk = df[df["faa"] == "JFK"].iloc[0]

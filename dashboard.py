@@ -51,6 +51,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+if st.sidebar.button("Home", key="home_button"):
+    page = "dashboard"
+
 conn = sqlite3.connect("data/flights_database.db")
 
 df_airports = pd.read_sql_query("SELECT * FROM airports;", conn)
@@ -66,9 +69,6 @@ faa_list = [selected_destination]
 
 page = "dashboard"
 
-if st.sidebar.button("Home", key="home_button"):
-    page = "dashboard"
-
 if st.sidebar.button("Go to Flight Overview", key="overview_button"):
     page = "overview"
 
@@ -77,6 +77,7 @@ if page == "overview":
 
     fig_dep_to_arr = p1.plot_flight_to_airport(selected_departure, faa_list)
     st.plotly_chart(fig_dep_to_arr, use_container_width=True)
+
 else:
     # Titel
     st.markdown('<div class="title">Flight Statistics Dashboard</div>', unsafe_allow_html=True)

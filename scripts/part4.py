@@ -126,5 +126,3 @@ def convert_to_local_time(df):
         df['local_arr_time'] = local_arrival_times
         return df
 
-dff = convert_to_local_time(clean_and_process_flights_data())
-print(dff)
