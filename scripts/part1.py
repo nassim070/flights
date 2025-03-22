@@ -8,12 +8,12 @@ df = pd.read_csv('data/airports.csv')
 
 def show_globalmap():
     map = px.scatter_geo(data_frame=df, lat= 'lat', lon='lon', color='tzone')
-    map.show()
+    return map
 
 def show_usamap():
     usa_map = px.scatter_geo(data_frame=df, lat= 'lat', lon='lon', color='alt')
     usa_map.update_layout(geo_scope = 'usa')
-    usa_map.show()
+    return usa_map
 
 def is_usa(faa):
     for x in faa:
@@ -22,7 +22,6 @@ def is_usa(faa):
 
         if (is_usa.any() == False):
             return False
-
     
     return True
 
@@ -32,8 +31,7 @@ def plot_flight_to_airport(departure_faa, faa_list):
     dep_lat, dep_lon = departure_airport["lat"].values[0], departure_airport["lon"].values[0]
 
     fig = px.scatter_geo(
-        df[df["faa"].isin([departure_faa] + faa_list)], lat="lat", lon="lon", hover_name="name",
-        title=f"Flights from {departure_faa} to {faa_list[0]}"
+        df[df["faa"].isin([departure_faa] + faa_list)], lat="lat", lon="lon", hover_name="name"
     )
 
     for faa in faa_list:
@@ -86,7 +84,8 @@ def euclidean_distance_plot():
     plt.ylabel("Number of Airports")
     plt.title("Distribution of Euclidean Distances from JFK Airport")
     plt.grid(True)
-    plt.show()
+    
+    return plt
 
 def geodesic_distance_plot():
     R = 6371.0
@@ -117,7 +116,8 @@ def geodesic_distance_plot():
     plt.ylabel("Number of Airports")
     plt.title("Distribution of Geodesic Distances from JFK Airport")
     plt.grid(True)
-    plt.show()
+    
+    return plt
 
 def analyse_time_zones():
     # Analyze time zones
@@ -131,7 +131,8 @@ def analyse_time_zones():
     plt.title("Distribution of Airports by Time Zone")
     plt.xticks(rotation=45)
     plt.grid(True)
-    plt.show()
+    
+    return plt
 
 def analysis_airport_altitudes():
     plt.figure(figsize=(10, 5))
@@ -140,4 +141,5 @@ def analysis_airport_altitudes():
     plt.ylabel("Number of Airports")
     plt.title("Distribution of Airport Altitudes")
     plt.grid(True)
-    plt.show()
+    
+    return plt

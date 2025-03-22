@@ -64,6 +64,8 @@ selected_departure = st.sidebar.selectbox("Choose Departure Airport", airports_d
 selected_destination = st.sidebar.selectbox("Choose Arrival Airport", airports_arr)
 faa_list = [selected_destination]
 
+def flight_exists(df, dep, arr):
+    return not df[(df["origin"] == dep) & (df["dest"] == arr)].empty
 
 page = "dashboard"
 
@@ -71,59 +73,63 @@ if st.sidebar.button("Go to Flight Overview", key="overview_button"):
     page = "overview"
 
 if page == "overview":
-    st.markdown(f"<h1 style='text-align: center;'>Statistics of flights from {selected_departure} to {selected_destination}</h1>", unsafe_allow_html=True)
+    if flight_exists(df_flights, selected_departure, selected_destination):
 
-    fig_dep_to_arr = p1.plot_flight_to_airport(selected_departure, faa_list)
-    st.plotly_chart(fig_dep_to_arr, use_container_width=True)
+        st.markdown(f"<h1 style='text-align: center;'>Statistics of flights from {selected_departure} to {selected_destination}</h1>", unsafe_allow_html=True)
 
-    col5, col6 = st.columns(2)
+        fig_dep_to_arr = p1.plot_flight_to_airport(selected_departure, faa_list)
+        st.plotly_chart(fig_dep_to_arr, use_container_width=True)
 
-    with col5:
-        st.markdown(
-            f'<div class="metric-box orange-box">'
-            f'<h3>Total Flights</h3>'
-            f'<h1>{stats.get_number_of_flights(df_flights, selected_departure, selected_destination, conn)}</h1>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
+        col5, col6 = st.columns(2)
 
-    with col6:
-        st.markdown(
-            f'<div class="metric-box orange-box">'
-            f'<h3>Distance</h3>'
-            f'<h1>{stats.get_distance(df_flights, selected_departure, selected_destination, conn)}</h1>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
+        with col5:
+            st.markdown(
+                f'<div class="metric-box orange-box">'
+                f'<h3>Total Flights</h3>'
+                f'<h1>{stats.get_number_of_flights(df_flights, selected_departure, selected_destination, conn)}</h1>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
 
-    col7, col8, col9 = st.columns(3)
+        with col6:
+            st.markdown(
+                f'<div class="metric-box orange-box">'
+                f'<h3>Distance</h3>'
+                f'<h1>{stats.get_distance(df_flights, selected_departure, selected_destination, conn)}</h1>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
 
-    with col7:
-        st.markdown(
-            f'<div class="metric-box black-box">'
-            f'<h3>Average Delay</h3>'
-            f'<h2>{stats.get_average_dep_delay(df_flights, selected_departure, selected_destination, conn)}</h2>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
-    
-    with col8:
-        st.markdown(
-            f'<div class="metric-box black-box">'
-            f'<h3>Percentage of Delay</h3>'
-            f'<h1>{stats.get_percentage_delayed_flights(df_flights, selected_departure, selected_destination, conn)}</h1>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
-    
-    with col9:
-        st.markdown(
-            f'<div class="metric-box black-box">'
-            f'<h3>Percentage of Flights on Time</h3>'
-            f'<h1>{stats.get_percentage_on_time_arrivals(df_flights, selected_departure, selected_destination, conn)}</h1>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
+        col7, col8, col9 = st.columns(3)
+
+        with col7:
+            st.markdown(
+                f'<div class="metric-box black-box">'
+                f'<h3>Average Delay</h3>'
+                f'<h2>{stats.get_average_dep_delay(df_flights, selected_departure, selected_destination, conn)}</h2>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+        
+        with col8:
+            st.markdown(
+                f'<div class="metric-box black-box">'
+                f'<h3>Percentage of Delay</h3>'
+                f'<h1>{stats.get_percentage_delayed_flights(df_flights, selected_departure, selected_destination, conn)}</h1>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+        
+        with col9:
+            st.markdown(
+                f'<div class="metric-box black-box">'
+                f'<h3>Percentage of Flights on Time</h3>'
+                f'<h1>{stats.get_percentage_on_time_arrivals(df_flights, selected_departure, selected_destination, conn)}</h1>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+    else:
+        st.markdown(f"<h1 style='text-align: center;'>Error: no flight from {selected_departure} to {selected_destination}</h1>", unsafe_allow_html=True)
 
 else:
     # Titel
@@ -177,17 +183,8 @@ else:
             unsafe_allow_html=True,
         )
 
-    def show_globalmap():
-        fig = px.scatter_geo(
-            data_frame=df_airports, 
-            lat='lat', 
-            lon='lon', 
-            color='tzone', 
-        )
-        return fig
-
     st.subheader("Global Flight Map")
-    fig_globalmap = show_globalmap()
+    fig_globalmap = p1.show_globalmap()
     st.plotly_chart(fig_globalmap, use_container_width=True)
 
 conn.close()
