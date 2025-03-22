@@ -31,20 +31,15 @@ st.markdown(
         background-color: #333333;
         color: white;
     }
-    .sidebar-button {
+    .st-emotion-cache-zaw6nw {
         background-color: #FFA500;
         color: white;
-        border: none;
-        padding: 10px;
-        width: 100%;
-        text-align: center;
-        font-size: 16px;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-top: 10px;
+        margin: 0 auto;
+        display: block;
     }
-    .sidebar-button:hover {
-        background-color: #e69500;
+    .st-emotion-cache-zaw6nw:hover {
+        background-color: white;
+        color: #FFA500;
     }
     </style>
     """,
