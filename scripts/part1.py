@@ -10,10 +10,12 @@ def show_globalmap():
     map = px.scatter_geo(data_frame=df, lat= 'lat', lon='lon', color='tzone')
     return map
 
+
 def show_usamap():
     usa_map = px.scatter_geo(data_frame=df, lat= 'lat', lon='lon', color='alt')
     usa_map.update_layout(geo_scope = 'usa')
     return usa_map
+
 
 def is_usa(faa):
     for x in faa:
@@ -24,6 +26,7 @@ def is_usa(faa):
             return False
     
     return True
+
 
 def plot_flight_to_airport(departure_faa, faa_list):
     departure_airport = df[df["faa"] == departure_faa]
@@ -89,6 +92,7 @@ def euclidean_distance_plot():
     
     return plt
 
+
 def geodesic_distance_plot():
     R = 6371.0
 
@@ -115,6 +119,7 @@ def geodesic_distance_plot():
     
     return plt
 
+
 def analyse_time_zones():
     timezone_counts = df["tz"].value_counts()
 
@@ -127,6 +132,7 @@ def analyse_time_zones():
     plt.grid(True)
     
     return plt
+
 
 def analysis_airport_altitudes():
     plt.figure(figsize=(10, 5))
