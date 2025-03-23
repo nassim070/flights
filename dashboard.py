@@ -56,18 +56,16 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+conn = sqlite3.connect("data/flights_database.db")
+
 @st.cache_data
 def get_airports():
-    conn = sqlite3.connect("data/flights_database.db")
     df = pd.read_sql_query("SELECT * FROM airports;", conn)
-    conn.close()
     return df
 
 @st.cache_data
 def get_flights():
-    conn = sqlite3.connect("data/flights_database.db")
     df = pd.read_sql_query("SELECT * FROM flights;", conn)
-    conn.close()
     return df
 
 @st.cache_data
@@ -148,12 +146,21 @@ if st.session_state.page == "overview":
             percent_on_time = cached_get_percentage_on_time_arrivals(df_flights, selected_departure, selected_destination, None if selected_airline == "All" else selected_airline)
             st.markdown(f'<div class="metric-box black-box"><h3>Percentage of Flights on Time</h3><h1>{percent_on_time}</h1></div>', unsafe_allow_html=True)
 
+        col10, col11 = st.columns(2)
+        df_weather = pd.read_sql_query("SELECT * FROM weather;", conn)
         if selected_airline == "All":
             fig_delays_per_day = stats.plot_delays_per_day(df_flights, selected_departure, selected_destination)
+            fig_delays_vs_windspeed = stats.plot_delay_vs_windspeed(df_flights, df_weather, selected_departure, selected_destination)
         else:
             fig_delays_per_day = stats.plot_delays_per_day(df_flights, selected_departure, selected_destination, selected_airline)
+            fig_delays_vs_windspeed = stats.plot_delay_vs_windspeed(df_flights, df_weather, selected_departure, selected_destination, selected_airline)
 
-        st.plotly_chart(fig_delays_per_day, use_container_width=True)
+        with col10:
+            st.plotly_chart(fig_delays_per_day, use_container_width=True)
+
+        with col11:
+            st.plotly_chart(fig_delays_vs_windspeed, use_container_width=True)
+        
     else:
         st.markdown(f"<h1 style='text-align: center;'>Error: no flight from {selected_departure} to {selected_destination}</h1>", unsafe_allow_html=True)
 else:
@@ -176,3 +183,5 @@ else:
     
     st.subheader("Global Flight Map")
     st.plotly_chart(cached_show_globalmap(), use_container_width=True)
+
+conn.close()

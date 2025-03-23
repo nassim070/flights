@@ -1,6 +1,7 @@
 import sqlite3
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
 conn = sqlite3.connect("data/flights_database.db")
 df = pd.read_sql_query("SELECT * FROM flights;", conn)
@@ -80,4 +81,29 @@ def plot_delays_per_day(df, dep, arr, airline=None):
                       yaxis_showgrid=True,
                       plot_bgcolor='white')
     
+    return fig
+
+
+def plot_delay_vs_windspeed(df_flights, df_weather, dep, arr, airline=None):
+    df = pd.merge(df_flights, df_weather, on=['origin', 'year', 'month', 'day', 'hour'])
+    if airline:
+        df = df[(df['origin'] == dep) & (df['dest'] == arr) & (df['carrier'] == airline)]
+    else:
+        df = df[(df['origin'] == dep) & (df['dest'] == arr)]
+
+    #let df only contain the columns origin, year, month, day, hour, dep_delay, and wind_speed
+    df = df[['origin', 'year', 'month', 'day', 'hour', 'dep_delay', 'wind_speed']]
+
+    #remove every row with missing values
+    df = df.dropna()
+
+    #plot bar chart of average delay per wind speed and add a trendline in black
+    df['wind_speed'] = df['wind_speed'].astype(int)
+    df['dep_delay'] = df['dep_delay'].astype(int)
+    df = df.groupby('wind_speed').mean().reset_index()
+    fig = px.bar(df, x='wind_speed', y='dep_delay', title=f"Average Delay per Wind Speed{' by ' + airline if airline != None else ''}", labels={'wind_speed': 'Wind Speed (mph)', 'dep_delay': 'Average Delay (minutes)'})
+    fig.update_traces(marker_color='#FFA500')
+    fig.update_layout(xaxis_title='Wind Speed (mph)', yaxis_title='Average Delay (minutes)', plot_bgcolor='white')
+    
+
     return fig
