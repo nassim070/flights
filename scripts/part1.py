@@ -34,6 +34,15 @@ def plot_flight_to_airport(departure_faa, faa_list):
         df[df["faa"].isin([departure_faa] + faa_list)], lat="lat", lon="lon", hover_name="name"
     )
 
+    fig.add_trace(go.Scattergeo(
+        lat=[dep_lat],
+        lon=[dep_lon],
+        mode="markers",
+        marker=dict(size=8, color="green"),
+        text=[departure_faa],
+        name=f"Departure: {departure_faa}"  # Name for the departure airport marker
+    ))
+
     for faa in faa_list:
         airport = df[df["faa"] == faa]
 
@@ -46,7 +55,8 @@ def plot_flight_to_airport(departure_faa, faa_list):
                 lat=[dep_lat, airport_lat],
                 lon=[dep_lon, airport_lon],
                 mode="lines",
-                line=dict(width=2, color="red")
+                line=dict(width=2, color="red"),
+                name=f"Flight to {faa}"
             ))
 
             fig.add_trace(go.Scattergeo(
@@ -54,16 +64,9 @@ def plot_flight_to_airport(departure_faa, faa_list):
                 lon=[airport_lon],
                 mode="markers",
                 marker=dict(size=8, color="blue"),
-                text=[airport_name]
+                text=[airport_name],
+                name=f"Arrival: {faa}" 
             ))
-
-    fig.add_trace(go.Scattergeo(
-        lat=[dep_lat],
-        lon=[dep_lon],
-        mode="markers",
-        marker=dict(size=8, color="green"),
-        text=[departure_faa]
-    ))
 
     if is_usa(faa_list):
         fig.update_layout(geo_scope='usa')

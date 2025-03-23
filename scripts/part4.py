@@ -97,8 +97,6 @@ def check_flight_data_consistency(df):
     
     return df
 
-#dff = check_flight_data_consistency(clean_and_process_flights_data())
-#print(dff)
 
 def convert_to_local_time(df):
         airports_query = "SELECT faa, tz FROM airports;"
