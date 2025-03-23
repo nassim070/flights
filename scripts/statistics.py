@@ -85,25 +85,45 @@ def plot_delays_per_day(df, dep, arr, airline=None):
 
 
 def plot_delay_vs_windspeed(df_flights, df_weather, dep, arr, airline=None):
+    # Merge the flight and weather data
     df = pd.merge(df_flights, df_weather, on=['origin', 'year', 'month', 'day', 'hour'])
+    
+    # Filter based on departure, arrival, and optionally airline
     if airline:
         df = df[(df['origin'] == dep) & (df['dest'] == arr) & (df['carrier'] == airline)]
     else:
         df = df[(df['origin'] == dep) & (df['dest'] == arr)]
 
-    #let df only contain the columns origin, year, month, day, hour, dep_delay, and wind_speed
+    # Keep only the relevant columns
     df = df[['origin', 'year', 'month', 'day', 'hour', 'dep_delay', 'wind_speed']]
 
-    #remove every row with missing values
+    # Remove rows with missing values
     df = df.dropna()
 
-    #plot bar chart of average delay per wind speed and add a trendline in black
+    # Convert wind_speed and dep_delay to integers
     df['wind_speed'] = df['wind_speed'].astype(int)
     df['dep_delay'] = df['dep_delay'].astype(int)
-    df = df.groupby('wind_speed').mean().reset_index()
-    fig = px.bar(df, x='wind_speed', y='dep_delay', title=f"Average Delay per Wind Speed{' by ' + airline if airline != None else ''}", labels={'wind_speed': 'Wind Speed (mph)', 'dep_delay': 'Average Delay (minutes)'})
+
+    # Group by wind_speed and calculate the mean, explicitly setting numeric_only=True
+    df = df.groupby('wind_speed').mean(numeric_only=True).reset_index()
+
+    # Plot the bar chart
+    fig = px.bar(
+        df,
+        x='wind_speed',
+        y='dep_delay',
+        title=f"Average Delay per Wind Speed{' by ' + airline if airline else ''}",
+        labels={'wind_speed': 'Wind Speed (mph)', 'dep_delay': 'Average Delay (minutes)'}
+    )
     fig.update_traces(marker_color='#FFA500')
-    fig.update_layout(xaxis_title='Wind Speed (mph)', yaxis_title='Average Delay (minutes)', plot_bgcolor='white')
-    
+    fig.update_layout(
+        xaxis_title='Wind Speed (mph)',
+        yaxis_title='Average Delay (minutes)',
+        plot_bgcolor='white'
+    )
 
     return fig
+
+df_flights = df
+df_weather = pd.read_sql_query("SELECT * FROM weather;", conn)
+plot_delay_vs_windspeed(df_flights, df_weather, "JFK", "ATL").show()
