@@ -85,29 +85,22 @@ def plot_delays_per_day(df, dep, arr, airline=None):
 
 
 def plot_delay_vs_windspeed(df_flights, df_weather, dep, arr, airline=None):
-    # Merge the flight and weather data
     df = pd.merge(df_flights, df_weather, on=['origin', 'year', 'month', 'day', 'hour'])
     
-    # Filter based on departure, arrival, and optionally airline
     if airline:
         df = df[(df['origin'] == dep) & (df['dest'] == arr) & (df['carrier'] == airline)]
     else:
         df = df[(df['origin'] == dep) & (df['dest'] == arr)]
 
-    # Keep only the relevant columns
     df = df[['origin', 'year', 'month', 'day', 'hour', 'dep_delay', 'wind_speed']]
 
-    # Remove rows with missing values
     df = df.dropna()
 
-    # Convert wind_speed and dep_delay to integers
     df['wind_speed'] = df['wind_speed'].astype(int)
     df['dep_delay'] = df['dep_delay'].astype(int)
 
-    # Group by wind_speed and calculate the mean, explicitly setting numeric_only=True
     df = df.groupby('wind_speed').mean(numeric_only=True).reset_index()
 
-    # Plot the bar chart
     fig = px.bar(
         df,
         x='wind_speed',

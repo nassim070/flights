@@ -133,6 +133,7 @@ def average_departure_delay_per_airline():
     plt.subplots_adjust(bottom=0.3)
     plt.show()
 
+
 def delayed_flights_to_destination(start_month, end_month, destination):
     query = """
         SELECT COUNT(*) 
@@ -148,8 +149,6 @@ def delayed_flights_to_destination(start_month, end_month, destination):
     result = cursor.fetchone()
     return result[0] if result else 0
 
-#delayed_flights_count = delayed_flights_to_destination(1, 4, 'HNL')
-#print(f"Number of delayed flights: {delayed_flights_count}")
 
 def top_manufacturers_for_destination(destination):
     flights_query = """
@@ -168,7 +167,6 @@ def top_manufacturers_for_destination(destination):
 
     return manufacturer_counts
 
-#print(top_manufacturers_for_destination("SMF"))
 
 def analyze_distance_vs_delay():
     query = """
@@ -189,7 +187,6 @@ def analyze_distance_vs_delay():
     correlation = df['arr_delay'].corr(df['distance'])
     print(f"Correlation between arrival delay and distance: {correlation:.2f}")
 
-#analyze_distance_vs_delay()
 
 def update_plane_speeds():
     query = """
@@ -216,7 +213,6 @@ def update_plane_speeds():
     conn.commit()
     print("Plane speeds updated successfully.")
 
-#update_plane_speeds()
 
 def calculate_bearing(lat1, lon1, lat2, lon2):
     """Bereken de richting (bearing) van de vlucht tussen twee locaties."""
@@ -230,6 +226,7 @@ def calculate_bearing(lat1, lon1, lat2, lon2):
     compass_bearing = (np.degrees(initial_bearing) + 360) % 360  
 
     return round(compass_bearing, 2)
+
 
 def get_flight_directions():
 
@@ -248,8 +245,6 @@ def get_flight_directions():
                                                             row["dest_lat"], row["dest_lon"]), axis=1)
     
     return df[["origin", "dest", "bearing"]]
-
-#print(get_flight_directions())
 
 
 def compute_inner_product(year, month, day, flight, hour, minute):
@@ -302,7 +297,6 @@ def compute_inner_product(year, month, day, flight, hour, minute):
     
     return inner_product
 
-#print(compute_inner_product(2023, 1, 1, 628, 20, 38))
 
 def visualize_inner_product_vs_air_time():
     query = """

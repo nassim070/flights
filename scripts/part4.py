@@ -71,7 +71,7 @@ def check_flight_data_consistency(df):
 
         inconsistent_delay = []
         calculated_dep_delay = (dep_datetime - datetime.combine(datetime.today(), sched_dep)).total_seconds() / 60
-        if calculated_dep_delay < 0:
+        if calculated_dep_delay < -120: #we assume it is impossible that a flight will depart 120 minutes earlier
             calculated_dep_delay += 1440
         
         if row['dep_delay'] != calculated_dep_delay:
@@ -80,8 +80,6 @@ def check_flight_data_consistency(df):
 
         inconsistent_arrival = []
         calculated_arr_delay = (arr_datetime - datetime.combine(datetime.today(), sched_arr)).total_seconds() / 60
-        if calculated_arr_delay < 0:
-            calculated_arr_delay += 1440
         
         if row['arr_delay'] != calculated_arr_delay:
             inconsistent_arrival.append(index)
