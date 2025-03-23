@@ -1,4 +1,4 @@
-import part1 as p1
+from scripts import part1 as p1
 import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
@@ -12,8 +12,6 @@ cursor = conn.cursor()
 def compare_distances():
     df = pd.read_sql_query("SELECT distance FROM flights;", conn)
 
-    conn.close()
-
     plt.figure(figsize=(10, 5))
     plt.hist(df["distance"], bins=30, edgecolor="black", alpha=0.7, color="teal")
     plt.xlabel("Distance")
@@ -24,10 +22,11 @@ def compare_distances():
 
     p1.geodesic_distance_plot()
 
+
 def depart_from_NYC (origin):
      df = pd.read_sql_query(f"SELECT * FROM flights WHERE origin = '{origin}';" , conn)
 
-     print(df)
+     return df
 
 
 def plot_flights_on_date(month, day, origin):
@@ -99,25 +98,17 @@ def flight_statistics_on_date(month, day, origin):
         "most_common_count": most_common_count
     }
 
-def aircraft_usage_by_route(origin, destination):
-    query = """
-        SELECT tailnum, COUNT(*) as count
-        FROM flights
-        WHERE origin = ? AND dest = ?
-        GROUP BY tailnum
-        ORDER BY count DESC;
-    """
 
-    cursor.execute(query, (origin, destination))
-    results = cursor.fetchall()
+def aircraft_usage_by_route(origin, destination, df, airline=None):
+    if airline:
+        flights = df[(df["origin"] == origin) & (df["dest"] == destination) & (df["carrier"] == airline)]
+    else:
+        flights = df[(df["origin"] == origin) & (df["dest"] == destination)]
 
-    tailnum_counts = {row[0]: row[1] for row in results}
+    aircraft_usage = flights["tailnum"].value_counts().head(5)
 
-    print(f"Aircraft usage from {origin} to {destination}:")
-    for tailnum, count in tailnum_counts.items():
-        print(f"- {tailnum}: {count} times")
+    return aircraft_usage
 
-    return tailnum_counts
 
 def average_departure_delay_per_airline():
     query = """
@@ -252,7 +243,6 @@ def get_flight_directions():
     """
     
     df = pd.read_sql_query(query, conn)
-    conn.close()
 
     df["bearing"] = df.apply(lambda row: calculate_bearing(row["origin_lat"], row["origin_lon"], 
                                                             row["dest_lat"], row["dest_lon"]), axis=1)
@@ -378,3 +368,5 @@ def visualize_inner_product_vs_air_time():
     plt.grid(True)
     plt.show()
 
+
+conn.close()

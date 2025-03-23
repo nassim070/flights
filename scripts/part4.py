@@ -124,3 +124,6 @@ def convert_to_local_time(df):
         df['local_arr_time'] = local_arrival_times
         return df
 
+
+def get_final_df():
+    return check_flight_data_consistency(clean_and_process_flights_data())
