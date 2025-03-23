@@ -40,7 +40,7 @@ def plot_flight_to_airport(departure_faa, faa_list):
         mode="markers",
         marker=dict(size=8, color="green"),
         text=[departure_faa],
-        name=f"Departure: {departure_faa}"  # Name for the departure airport marker
+        name=f"Departure: {departure_faa}"
     ))
 
     for faa in faa_list:
@@ -80,7 +80,6 @@ def euclidean_distance_plot():
 
     df["distance"] = np.sqrt((df["lat"] - jfk_lat) ** 2 + (df["lon"] - jfk_lon) ** 2)
 
-    # Plot the distribution of distances
     plt.figure(figsize=(10, 5))
     plt.hist(df["distance"], bins=30, edgecolor='black', alpha=0.7)
     plt.xlabel("Euclidean Distance from JFK")
@@ -93,26 +92,20 @@ def euclidean_distance_plot():
 def geodesic_distance_plot():
     R = 6371.0
 
-    # JFK Airport coordinates (from the dataset or known values)
     jfk = df[df["faa"] == "JFK"].iloc[0]
     jfk_lat, jfk_lon = np.radians(jfk["lat"]), np.radians(jfk["lon"])
 
-    # Convert latitude and longitude to radians
     df["lat_rad"], df["lon_rad"] = np.radians(df["lat"]), np.radians(df["lon"])
 
-    # Compute differences in latitude and longitude
     delta_lat = df["lat_rad"] - jfk_lat
     delta_lon = df["lon_rad"] - jfk_lon
 
-    # Compute the midpoint latitude
     phi_m = (df["lat_rad"] + jfk_lat) / 2
 
-    # Compute geodesic distance using the given formula
     df["distance"] = R * np.sqrt(
         (2 * np.sin(delta_lat / 2))**2 + (2 * np.cos(phi_m) * np.sin(delta_lon / 2))**2
     )
 
-    # Plot the distribution of distances
     plt.figure(figsize=(10, 5))
     plt.hist(df["distance"], bins=30, edgecolor='black', alpha=0.7)
     plt.xlabel("Geodesic Distance from JFK (km)")
@@ -123,10 +116,8 @@ def geodesic_distance_plot():
     return plt
 
 def analyse_time_zones():
-    # Analyze time zones
     timezone_counts = df["tz"].value_counts()
 
-    # Plot time zone distribution
     plt.figure(figsize=(12, 6))
     plt.bar(timezone_counts.index, timezone_counts.values, color="royalblue")
     plt.xlabel("Time Zone")

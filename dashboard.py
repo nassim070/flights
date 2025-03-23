@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import sqlite3
-from scripts import part1 as p1  
+from scripts import part1 as p1
+from scripts import part3 as p3
+from scripts import part4 as p4
 from scripts import statistics as stats
 
 st.set_page_config(layout="wide", page_title="Flight Statistics Dashboard", page_icon=":airplane:")
@@ -65,7 +66,7 @@ def get_airports():
 
 @st.cache_data
 def get_flights():
-    df = pd.read_sql_query("SELECT * FROM flights;", conn)
+    df = p4.get_final_df()
     return df
 
 @st.cache_data
@@ -92,11 +93,9 @@ def cached_plot_flight_to_airport(dep, faa_list):
 def cached_show_globalmap():
     return p1.show_globalmap()
 
-# Initialize session state for page navigation
 if 'page' not in st.session_state:
     st.session_state.page = "dashboard"
 
-# Sidebar navigation
 if st.sidebar.button("Home", key="home_button"):
     st.session_state.page = "dashboard"
 
@@ -106,14 +105,49 @@ df_flights = get_flights()
 airports_arr = df_airports['faa'].dropna().unique().tolist()
 airports_dep = ['JFK', 'LGA', 'EWR']
 
-selected_departure = st.sidebar.selectbox("Choose Departure Airport", airports_dep)
-selected_destination = st.sidebar.selectbox("Choose Arrival Airport", airports_arr)
+selected_departure = st.sidebar.selectbox("Choose Departure Airport", airports_dep, disabled=True if st.session_state.page == "datepage" else False)
+selected_destination = st.sidebar.selectbox("Choose Arrival Airport", airports_arr, disabled=True if st.session_state.page == "datepage" else False)
 faa_list = [selected_destination]
 
 if st.session_state.page == "dashboard":
-    st.sidebar.button("Go to Flight Overview", key="overview_button", disabled=True if st.session_state.page == "overview" else False, on_click=lambda: st.session_state.update(page="overview"))
+    st.sidebar.button("Go to Flight Overview", key="overview_button", disabled=True if st.session_state.page != "dashboard" else False, on_click=lambda: st.session_state.update(page="overview"))
 
-if st.session_state.page == "overview":
+selected_date = st.sidebar.date_input('Choose a date', disabled=True if st.session_state.page == "overview"  else False)
+
+if st.session_state.page == "dashboard":
+    st.sidebar.button("Select Date", key="datepage_button", disabled=True if st.session_state.page != "dashboard" else False, on_click=lambda: st.session_state.update(page="datepage"))
+
+
+if st.session_state.page == "datepage":  
+    df_filtered_dates = df_flights[
+    (df_flights['year'] == selected_date.year) & 
+    (df_flights['month'] == selected_date.month) & 
+    (df_flights['day'] == selected_date.day)
+    ]
+
+    if not df_filtered_dates.empty:
+        st.markdown(f"<h2 style='text-align: center;'>Statistics for {selected_date}</h2>", unsafe_allow_html=True)
+
+        col12, col13, col14= st.columns(3)
+
+        with col12:
+            total_flights = len(df_filtered_dates)
+            st.markdown(f'<div class="metric-box orange-box"><h3>Total Flights</h3><h1>{total_flights}</h1></div>', unsafe_allow_html=True)
+
+        with col13:
+            avg_delay = df_filtered_dates['dep_delay'].mean()
+            st.markdown(f'<div class="metric-box black-box"><h3>Average Departure Delay</h3><h1>{avg_delay:.2f} min</h1></div>', unsafe_allow_html=True)
+
+        with col14:
+            percent_delayed = (df_filtered_dates['dep_delay'] > 0).mean() * 100
+            st.markdown(f'<div class="metric-box black-box"><h3>Percentage of Delayed Flights</h3><h1>{percent_delayed:.2f}%</h1></div>', unsafe_allow_html=True)
+
+        plot_of_delaytimes_per_hour = stats.plot_delaytimes_per_hour(df_filtered_dates)
+        st.plotly_chart(plot_of_delaytimes_per_hour, use_container_width=True)
+
+    else:
+        st.markdown(f"<h2 style='text-align: center;'>No flights found for {selected_date}</h2>", unsafe_allow_html=True)
+elif st.session_state.page == "overview":
     if not df_flights[(df_flights["origin"] == selected_departure) & (df_flights["dest"] == selected_destination)].empty:
         airlines = df_flights[(df_flights["origin"] == selected_departure) & (df_flights["dest"] == selected_destination)]["carrier"].unique().tolist()
         airlines.insert(0, "All")
@@ -121,8 +155,16 @@ if st.session_state.page == "overview":
 
         st.markdown(f"<h1 style='text-align: center;'>Statistics of flights from {selected_departure} to {selected_destination}{' by ' + selected_airline if selected_airline != 'All' else ''}</h1>", unsafe_allow_html=True)
 
-        flight_map = cached_plot_flight_to_airport(selected_departure, faa_list).update_layout(margin={"r": 0, "t": 10, "l": 0, "b": 0}, height = 300)
-        st.plotly_chart(flight_map, use_container_width=True)
+        col15, col16 = st.columns(2)
+        with col15:
+            flight_map = cached_plot_flight_to_airport(selected_departure, faa_list).update_layout(margin={"r": 0, "t": 10, "l": 0, "b": 0}, height = 300)
+            st.plotly_chart(flight_map, use_container_width=True)
+        
+        with col16:
+            st.markdown(f"<h2 style='text-align: center;'>Top 5 Tailnumbers</h2>", unsafe_allow_html=True)
+            # Top 5 tailnumbers by using the aircraft_usage_by_route() function from part3.py
+            tailnumbers = p3.aircraft_usage_by_route(selected_departure, selected_destination, df_flights, airline = None if selected_airline == "All" else selected_airline)
+            st.write(tailnumbers)
 
         col5, col6 = st.columns(2)
         with col5:

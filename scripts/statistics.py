@@ -124,6 +124,29 @@ def plot_delay_vs_windspeed(df_flights, df_weather, dep, arr, airline=None):
 
     return fig
 
-df_flights = df
-df_weather = pd.read_sql_query("SELECT * FROM weather;", conn)
-plot_delay_vs_windspeed(df_flights, df_weather, "JFK", "ATL").show()
+
+def plot_delaytimes_per_hour(df_flights):
+    df_flights = df_flights.copy() 
+    
+    df_flights = df_flights.dropna(subset=['hour', 'dep_delay'])  
+    df_flights['hour'] = df_flights['hour'].astype(int)
+    df_flights['dep_delay'] = df_flights['dep_delay'].astype(int)
+
+    df = df_flights.groupby('hour', as_index=False)['dep_delay'].mean()
+    
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=df['hour'], 
+        y=df['dep_delay'], 
+        mode='lines+markers', 
+        marker_color='#FFA500' 
+    ))
+    
+    fig.update_layout(
+        title='Average Delay per Hour of the Day',
+        xaxis_title='Hour of the Day',
+        yaxis_title='Average Delay (minutes)',
+        plot_bgcolor='white'
+    )
+    
+    return fig  
