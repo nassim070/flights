@@ -1,7 +1,6 @@
 import sqlite3
 import pandas as pd
 from datetime import datetime, timedelta
-import pytz
 
 conn = sqlite3.connect("data/flights_database.db")
 
