@@ -8,7 +8,6 @@ This repository contains a Streamlit-based dashboard for analyzing flight statis
 - [Installation](#installation)
 - [Usage](#usage)
 - [File Structure](#file-structure)
-- [Contributing](#contributing)
 
 ## Features
 
